@@ -1,0 +1,351 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Redisco by kiddouk</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Redisco</h1>
+        <p>A Python Library for Simple Models and Containers Persisted in Redis </p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/kiddouk/redisco" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/kiddouk/redisco/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/kiddouk/redisco/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1></h1>
+
+<h1>Redisco</h1>
+
+<p>Python Containers and Simple Models for Redis</p>
+
+<h2>Description</h2>
+
+<p>Redisco allows you to store objects in Redis<em>. It is inspired by the Ruby library
+Ohm</em> and its design and code are loosely based on Ohm and the Django ORM.
+It is built on top of redis-py_. It includes container classes that allow
+easier access to Redis sets, lists, and sorted sets.</p>
+
+<h2>Installation</h2>
+
+<p>Redisco requires redis-py 2.0.0 so get it first.</p>
+
+<pre><code>pip install redis
+</code></pre>
+
+<p>Then install redisco.</p>
+
+<pre><code>pip install redisco
+</code></pre>
+
+<h2>Models</h2>
+
+<p>::</p>
+
+<pre><code>from redisco import models
+class Person(models.Model):
+    name = models.Attribute(required=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    fave_colors = models.ListField(str)
+
+&gt;&gt;&gt; person = Person(name="Conchita")
+&gt;&gt;&gt; person.is_valid()
+True
+&gt;&gt;&gt; person.save()
+True
+&gt;&gt;&gt; conchita = Person.objects.filter(name='Conchita')[0]
+&gt;&gt;&gt; conchita.name
+'Conchita'
+&gt;&gt;&gt; conchita.created_at
+datetime.datetime(2010, 5, 24, 16, 0, 31, 954704)
+</code></pre>
+
+<h2>Model Attributes</h2>
+
+<p>Attribute
+    Stores unicode strings. If used for large bodies of text,
+    turn indexing of this field off by setting indexed=True.</p>
+
+<p>IntegerField
+    Stores an int. Ints are stringified using unicode() before saving to
+    Redis.</p>
+
+<p>Counter
+    An IntegerField that can only be accessed via Model.incr and Model.decr.</p>
+
+<p>DateTimeField
+    Can store a DateTime object. Saved in the Redis store as a float.</p>
+
+<p>DateField
+    Can store a Date object. Saved in Redis as a float.</p>
+
+<p>FloatField
+    Can store floats.</p>
+
+<p>BooleanField
+    Can store bools. Saved in Redis as 1's and 0's.</p>
+
+<p>ReferenceField
+    Can reference other redisco model.</p>
+
+<p>ListField
+    Can store a list of unicode, int, float, as well as other redisco models.</p>
+
+<h2>Attribute Options</h2>
+
+<p>required
+    If True, the attirbute cannot be None or empty. Strings are stripped to
+    check if they are empty. Default is False.</p>
+
+<p>default
+    Sets the default value of the attribute. Default is None.</p>
+
+<p>indexed
+    If True, redisco will create index entries for the attribute. Indexes
+    are used in filtering and ordering results of queries. For large bodies
+    of strings, this should be set to False. Default is True.</p>
+
+<p>validator
+    Set this to a callable that accepts two arguments -- the field name and
+    the value of the attribute. The callable should return a list of tuples
+    with the first item is the field name, and the second item is the error.</p>
+
+<p>unique
+    The field must be unique. Default is False.</p>
+
+<p>DateField and DateTimeField Options</p>
+
+<p>auto_now_add
+    Automatically set the datetime/date field to now/today when the object
+    is first created. Default is False.</p>
+
+<p>auto_now
+    Automatically set the datetime/date field to now/today everytime the object
+    is saved. Default is False.</p>
+
+<h2>Saving and Validating</h2>
+
+<p>To save an object, call its save method. This returns True on success (i.e. when
+the object is valid) and False otherwise.</p>
+
+<p>Calling Model.is_valid will validate the attributes and lists. Model.is_valid
+is called when the instance is being saved. When there are invalid fields,
+Model.errors will hold the list of tuples containing the invalid fields and
+the reason for its invalidity. E.g.
+[('name', 'required'),('name', 'too short')]</p>
+
+<p>Fields can be validated using the validator argument of the attribute. Just
+pass a callable that accepts two arguments -- the field name and the value
+of the attribute. The callable should return a list of errors.</p>
+
+<p>Model.validate will also be called before saving the instance. Override it
+to validate instances not related to attributes.</p>
+
+<p>::</p>
+
+<pre><code>def not_me(field_name, value):
+    if value == 'Me':
+        return ((field_name, 'it is me'),)
+
+class Person(models.Model):
+    name = models.Attribute(required=True, validator=not_me)
+    age = models.IntegerField()
+
+    def validate(self):
+        if self.age and self.age &lt; 21:
+            self._errors.append(('age', 'below 21'))
+
+&gt;&gt;&gt; person = Person(name='Me')
+&gt;&gt;&gt; person.is_valid()
+False
+&gt;&gt;&gt; person.errors
+[('name', 'it is me')]
+</code></pre>
+
+<h2>Queries</h2>
+
+<p>Queries are executed using a manager, accessed via the objects class
+attribute.</p>
+
+<p>::</p>
+
+<pre><code>Person.objects.all()
+Person.objects.filter(name='Conchita')
+Person.objects.filter(name='Conchita').first()
+Person.objects.all().order('name')
+Person.objects.filter(fave_colors='Red')
+</code></pre>
+
+<h2>Ranged Queries</h2>
+
+<p>Redisco has a limited support for queries involving ranges -- it can only
+filter fields that are numeric, i.e. DateField, DateTimeField, IntegerField,
+and FloatField. The zfilter method of the manager is used for these queries.</p>
+
+<p>::</p>
+
+<pre><code>Person.objects.zfilter(created_at__lt=datetime(2010, 4, 20, 5, 2, 0))
+Person.objects.zfilter(created_at__gte=datetime(2010, 4, 20, 5, 2, 0))
+Person.objects.zfilter(created_at__in=(datetime(2010, 4, 20, 5, 2, 0), datetime(2010, 5, 1)))
+</code></pre>
+
+<h2>Containers</h2>
+
+<p>Redisco has three containers that roughly match Redis's supported data
+structures: lists, sets, sorted set. Anything done to the container is
+persisted to Redis.</p>
+
+<p>Sets
+    &gt;&gt;&gt; from redisco.containers import Set
+    &gt;&gt;&gt; s = Set('myset')
+    &gt;&gt;&gt; s.add('apple')
+    &gt;&gt;&gt; s.add('orange')
+    &gt;&gt;&gt; s.members
+    set(['orange', 'apple'])
+    &gt;&gt;&gt; t = Set('nset')
+    &gt;&gt;&gt; t.add('kiwi')
+    &gt;&gt;&gt; t.add('guava')
+    &gt;&gt;&gt; t.members
+    set(['kiwi', 'guava'])
+    &gt;&gt;&gt; s.update(t)
+    &gt;&gt;&gt; s.members
+    set(['kiwi', 'orange', 'guava', 'apple'])</p>
+
+<p>Lists
+    &gt;&gt;&gt; import redis
+    &gt;&gt;&gt; from redisco.containers import List
+    &gt;&gt;&gt; l = List('alpha')
+    &gt;&gt;&gt; l.append('a')
+    &gt;&gt;&gt; l.append('b')
+    &gt;&gt;&gt; l.append('c')
+    &gt;&gt;&gt; 'a' in l
+    True
+    &gt;&gt;&gt; 'd' in l
+    False
+    &gt;&gt;&gt; len(l)
+    3
+    &gt;&gt;&gt; l.index('b')
+    1
+    &gt;&gt;&gt; l.members
+    ['a', 'b', 'c']</p>
+
+<p>Sorted Sets
+    &gt;&gt;&gt; zset = SortedSet('zset')
+    &gt;&gt;&gt; zset.members
+    ['d', 'a', 'b', 'c']
+    &gt;&gt;&gt; 'e' in zset
+    False
+    &gt;&gt;&gt; 'a' in zset
+    True
+    &gt;&gt;&gt; zset.rank('d')
+    0
+    &gt;&gt;&gt; zset.rank('b')
+    2
+    &gt;&gt;&gt; zset[1]
+    'a'
+    &gt;&gt;&gt; zset.add('f', 200)
+    &gt;&gt;&gt; zset.members
+    ['d', 'a', 'b', 'c', 'f']
+    &gt;&gt;&gt; zset.add('d', 99)
+    &gt;&gt;&gt; zset.members
+    ['a', 'b', 'c', 'd', 'f']</p>
+
+<p>Dicts/Hashes
+    &gt;&gt;&gt; h = cont.Hash('hkey')
+    &gt;&gt;&gt; len(h)
+    0
+    &gt;&gt;&gt; h['name'] = "Richard Cypher"
+    &gt;&gt;&gt; h['real_name'] = "Richard Rahl"
+    &gt;&gt;&gt; h
+    
+    &gt;&gt;&gt; h.dict
+    {'name': 'Richard Cypher', 'real_name': 'Richard Rahl'}</p>
+
+<h2>Additional Info on Containers</h2>
+
+<p>Some methods of the Redis client that require the key as the first argument
+can be accessed from the container itself.</p>
+
+<pre><code>&gt;&gt;&gt; l = List('mylist')
+&gt;&gt;&gt; l.lrange(0, -1)
+0
+&gt;&gt;&gt; l.rpush('b')
+&gt;&gt;&gt; l.rpush('c')
+&gt;&gt;&gt; l.lpush('a')
+&gt;&gt;&gt; l.lrange(0, -1)
+['a', 'b', 'c']
+&gt;&gt;&gt; h = Hash('hkey')
+&gt;&gt;&gt; h.hset('name', 'Richard Rahl')
+&gt;&gt;&gt; h
+&lt;Hash 'hkey' {'name': 'Richard Rahl'}&gt;
+</code></pre>
+
+<h2>Connecting to Redis</h2>
+
+<p>All models and containers use a global Redis client object to
+interact with the key-value storage. By default, it connects
+to localhost:6379, selecting db 0. If you wish to specify settings:</p>
+
+<p>::</p>
+
+<pre><code>import redisco
+redisco.connection_setup(host='localhost', port=6380, db=10)
+</code></pre>
+
+<p>The arguments to connect are simply passed to the redis.Redis init method.</p>
+
+<p>For the containers, you can specify a second argument as the Redis client.
+That client object will be used instead of the default.</p>
+
+<pre><code>&gt;&gt;&gt; import redis
+&gt;&gt;&gt; r = redis.Redis(host='localhost', port=6381)
+&gt;&gt;&gt; Set('someset', r)
+</code></pre>
+
+<h2>Credits</h2>
+
+<p>Most of the concepts are taken from <code>Soveran</code><em>'s Redis related Ruby libraries.
+cyx</em> for sharing his expertise in indexing in Redis.
+Django, of course, for the popular model API.</p>
+
+<p>.. _Redis: <a href="http://code.google.com/p/redis/">http://code.google.com/p/redis/</a>
+.. _Ohm: <a href="http://github.com/soveran/ohm/">http://github.com/soveran/ohm/</a>
+.. _redis-py: <a href="http://github.com/andymccurdy/redis-py/">http://github.com/andymccurdy/redis-py/</a>
+.. _<code>Soveran</code>: <a href="http://github.com/soveran">http://github.com/soveran</a>
+.. _cyx: <a href="http://github.com/cyx">http://github.com/cyx</a></p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/kiddouk">kiddouk</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
