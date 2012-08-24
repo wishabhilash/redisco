@@ -6,7 +6,7 @@ from redisco.containers import Set, List, SortedSet, NonPersistentList
 from attributes import *
 from key import Key
 from managers import ManagerDescriptor, Manager
-from exceptions import FieldValidationError, MissingID, BadKeyError
+from exceptions import FieldValidationError, MissingID, BadKeyError, WatchError
 from attributes import Counter
 
 __all__ = ['Model', 'from_key']
@@ -607,10 +607,6 @@ def from_key(key):
 
 
 class Mutex(object):
-    """Implements locking so that other instances may not modify it.
-
-    Code ported from Ohm.
-    """
     def __init__(self, instance):
         self.instance = instance
 
@@ -623,18 +619,21 @@ class Mutex(object):
 
     def lock(self):
         o = self.instance
-        while not o.db.setnx(o.key('_lock'), self.lock_timeout):
-            lock = o.db.get(o.key('_lock'))
-            if not lock:
-                continue
-            if not self.lock_has_expired(lock):
-                time.sleep(0.5)
-                continue
-            lock = o.db.getset(o.key('_lock'), self.lock_timeout)
-            if not lock:
-                break
-            if self.lock_has_expired(lock):
-                break
+        _lock_key = o.key('_lock')
+        with o.db.pipeline() as pipe:
+            while True:
+                try:
+                    pipe.watch(_lock_key)
+                    if o.db.exists(_lock_key) and not self.lock_has_expired(o.db.get(_lock_key)):
+                        continue
+
+                    pipe.multi()
+                    pipe.set(_lock_key, self.lock_timeout).execute()
+                    break
+
+                except WatchError:
+                    time.sleep(0.5)
+                    continue
 
     def lock_has_expired(self, lock):
         return float(lock) < time.time()
