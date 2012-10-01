@@ -10,7 +10,7 @@ from redisco.containers import List
 from exceptions import FieldValidationError, MissingID
 
 __all__ = ['Attribute', 'CharField', 'ListField', 'DateTimeField',
-        'DateField', 'ReferenceField', 'IntegerField',
+        'DateField', 'ReferenceField', 'Collection', 'IntegerField',
         'FloatField', 'BooleanField', 'Counter', 'ZINDEXABLE']
 
 
@@ -325,6 +325,38 @@ class ListField(object):
                 errors.extend(r)
         if errors:
             raise FieldValidationError(errors)
+
+class Collection(object):
+    """
+    A simple container that will be replaced by the good imports
+    and the good filter query.
+    """
+    def __init__(self, target_type):
+        self.target_type = target_type
+
+    def __get__(self, instance, owner):
+        if not isinstance(self.target_type, str):
+            raise TypeError("A collection only accepts a string representing the Class")
+
+            # __import__ should be something like __import__('mymod.mysubmod', fromlist=['MyClass'])
+        klass_path = self.target_type.split(".")
+        fromlist = klass_path[-1]
+        frompath = ".".join(klass_path[0:-1])
+        # if the path is not empty, then it worth importing the class, otherwise, it's
+        # a local Class and it's already been imported.
+        if frompath:
+            mod = __import__(frompath, fromlist=[fromlist])
+        else:
+            mod = sys.modules[__name__]
+
+        klass = getattr(mod, fromlist)
+        return klass.objects.filter(**{instance.__class__.__name__.lower() + '_id': instance.id})
+
+    def __set__(self, instance, value):
+        """
+        Prevent the argument to be overriden
+        """
+        raise AttributeError("can't override a collection of object")
 
 
 class ReferenceField(object):

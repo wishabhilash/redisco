@@ -54,8 +54,9 @@ def _initialize_referenced(model_class, attribute):
     else:
         related_name = (attribute.related_name or
                 model_class.__name__.lower() + '_set')
-        setattr(klass, related_name,
-                property(_related_objects))
+        if not hasattr(klass, related_name):
+            setattr(klass, related_name,
+                    property(_related_objects))
 
 
 def _initialize_lists(model_class, name, bases, attrs):
