@@ -3,6 +3,7 @@
 Defines the fields that can be added to redisco models.
 """
 import time
+import sys
 from datetime import datetime, date
 from dateutil.tz import tzutc, tzlocal
 from calendar import timegm
