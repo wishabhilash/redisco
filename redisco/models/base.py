@@ -37,7 +37,6 @@ def _initialize_attributes(model_class, name, bases, attrs):
             model_class._attributes[k] = v
             v.name = v.name or k
 
-
 def _initialize_referenced(model_class, attribute):
     """
     Adds a property to the target of a reference field that
@@ -491,7 +490,7 @@ class Model(object):
     @property
     def db(self):
         """Returns the Redis client used by the model."""
-        return redisco.get_client()
+        return redisco.get_client() if not self._meta['db'] else self._meta['db']
 
     @property
     def errors(self):
@@ -641,8 +640,8 @@ class Model(object):
         """Deletes the object's id from the sets(indices) it has been added
         to and removes its list of indices (used for housekeeping).
         """
-        s = Set(self.key()['_indices'])
-        z = Set(self.key()['_zindices'])
+        s = Set(self.key()['_indices'], pipeline=self.db)
+        z = Set(self.key()['_zindices'], pipeline=self.db)
         for index in s.members:
             pipeline.srem(index, self.id)
         for index in z.members:
