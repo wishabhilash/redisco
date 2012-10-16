@@ -1,6 +1,8 @@
 ##########
 # ERRORS #
 ##########
+from redis import WatchError
+
 class Error(StandardError):
     pass
 
