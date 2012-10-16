@@ -12,7 +12,9 @@ class ModelSet(Set):
     def __init__(self, model_class):
         self.model_class = model_class
         self.key = model_class._key['all']
-        self._db = redisco.get_client()
+        # We access directly _meta as .db is a property and should be
+        # access from an instance, not a Class
+        self._db = model_class._meta['db'] or redisco.get_client()
         self._filters = {}
         self._exclusions = {}
         self._zfilters = []
@@ -287,7 +289,7 @@ class ModelSet(Set):
         if self._zfilters:
             self._cached_set = self._add_zfilters()
             return self._cached_set
-        s = Set(self.key)
+        s = Set(self.key, db=self.db)
         if self._filters:
             s = self._add_set_filter(s)
         if self._exclusions:
@@ -315,8 +317,8 @@ class ModelSet(Set):
                         (k, self.model_class.__name__))
             indices.append(index)
         new_set_key = "~%s.%s" % ("+".join([self.key] + indices), id(self))
-        s.intersection(new_set_key, *[Set(n) for n in indices])
-        new_set = Set(new_set_key)
+        s.intersection(new_set_key, *[Set(n, db=self.db) for n in indices])
+        new_set = Set(new_set_key, db=self.db)
         new_set.set_expire()
         return new_set
 
@@ -339,8 +341,8 @@ class ModelSet(Set):
                         (k, self.model_class.__name__))
             indices.append(index)
         new_set_key = "~%s.%s" % ("-".join([self.key] + indices), id(self))
-        s.difference(new_set_key, *[Set(n) for n in indices])
-        new_set = Set(new_set_key)
+        s.difference(new_set_key, *[Set(n, db=self.db) for n in indices])
+        new_set = Set(new_set_key, db=self.db)
         new_set.set_expire()
         return new_set
 
@@ -361,7 +363,7 @@ class ModelSet(Set):
             raise ValueError("zfilter should have an operator.")
         index = self.model_class._key[att]
         desc = self.model_class._attributes[att]
-        zset = SortedSet(index)
+        zset = SortedSet(index, db=self.db)
         limit, offset = self._get_limit_and_offset()
         if isinstance(v, (tuple, list,)):
             min, max = v
@@ -415,8 +417,8 @@ class ModelSet(Set):
                          num=num,
                          desc=desc)
             if old_set_key != self.key:
-                Set(old_set_key).set_expire()
-            new_list = List(new_set_key)
+                Set(old_set_key, db=self.db).set_expire()
+            new_list = List(new_set_key, db=self.db)
             new_list.set_expire()
             return new_list
 
@@ -436,8 +438,8 @@ class ModelSet(Set):
                      start=start,
                      num=num)
         if old_set_key != self.key:
-            Set(old_set_key).set_expire()
-        new_list = List(new_set_key)
+            Set(old_set_key, db=self.db).set_expire()
+        new_list = List(new_set_key, db=self.db)
         new_list.set_expire()
         return new_list
 

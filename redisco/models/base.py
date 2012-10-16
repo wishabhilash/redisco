@@ -517,8 +517,8 @@ class Model(object):
     @classmethod
     def exists(cls, id):
         """Checks if the model with id exists."""
-        return bool(redisco.get_client().exists(cls._key[str(id)]) or
-                    redisco.get_client().sismember(cls._key['all'], str(id)))
+        return bool((cls._meta['db'] or redisco.get_client()).exists(cls._key[str(id)]) or
+                    (cls._meta['db'] or redisco.get_client()).sismember(cls._key['all'], str(id)))
 
     ###################
     # Private methods #
