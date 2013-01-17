@@ -168,9 +168,10 @@ def _initialize_manager(model_class, name, bases, attrs):
 
     model_class.objects = ManagerDescriptor(Manager(model_class))
     for key, val in attrs.iteritems():
-        if isinstance(val, Manager):
+        if isinstance(val, type) and issubclass(val, Manager):
             attr_name = getattr(val, "__attr_name__", key.lower())
-            setattr(cls, attr_name, ManagerDescriptor(val))
+            descriptor = ManagerDescriptor(val(model_class))
+            setattr(model_class, attr_name, descriptor)
 
 
 class ModelOptions(object):
