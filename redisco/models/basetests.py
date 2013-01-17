@@ -6,8 +6,10 @@ import redisco
 import unittest
 from datetime import date
 from redisco import models
+from redisco.models import managers
 from redisco.models.base import Mutex
 from dateutil.tz import tzlocal
+
 
 class Person(models.Model):
     first_name = models.CharField()
@@ -18,6 +20,17 @@ class Person(models.Model):
 
     class Meta:
         indices = ['full_name']
+
+    class Manager(managers.Manager):
+        def get(self, *args, **kwargs):
+            return super(Manager, self).get_or_create(*args, **kwargs)
+
+    class Manager2(managers.Manager):
+        __attr_name__ = "all_objects"
+
+        def get(self, *args, **kwargs):
+            return super(Manager, self).get_or_create(*args, **kwargs)
+
 
 
 class RediscoTestCase(unittest.TestCase):
@@ -119,6 +132,10 @@ class ModelTestCase(RediscoTestCase):
 
         self.assertEqual('Granny', p1.first_name)
         self.assertEqual('Goose', p1.last_name)
+
+    def test_multiple_managers_exist(self):
+        self.assertIsInstance(Person.objects, managers.Manager)
+        self.assertIsInstance(Person.all_objects, managers.Manager)
 
     def test_manager_create(self):
         person = Person.objects.create(first_name="Granny", last_name="Goose")
