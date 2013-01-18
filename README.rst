@@ -147,6 +147,7 @@ You can specify some options in your Model to control the behaviour of the
 back scene.
 
 ::
+
     class User(models.Model):
         firstname = models.Attribute()
         lastname = models.Attribute()
@@ -176,6 +177,7 @@ class attribute. If not present, then it defaults to the lowercase attribute
 name in the Model.
 
 ::
+
     class User(models.Model):
         firstname = models.Attribute()
         lastname = models.Attribute()
