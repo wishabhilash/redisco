@@ -14,6 +14,7 @@ from dateutil.tz import tzlocal
 class Person(models.Model):
     first_name = models.CharField()
     last_name = models.CharField()
+    active = models.BooleanField(default=False)        
 
     def full_name(self):
         return "%s %s" % (self.first_name, self.last_name,)
@@ -21,16 +22,11 @@ class Person(models.Model):
     class Meta:
         indices = ['full_name']
 
-    class Manager(managers.Manager):
-        def get(self, *args, **kwargs):
-            return super(Manager, self).get_or_create(*args, **kwargs)
-
-    class Manager2(managers.Manager):
+    class HistoryManager(managers.Manager):
         __attr_name__ = "all_objects"
-
-        def get(self, *args, **kwargs):
-            return super(Manager, self).get_or_create(*args, **kwargs)
-
+        def get_model_set(self):
+            return super(Person.HistoryManager, self).\
+                get_model_set().filter(active=True)
 
 
 class RediscoTestCase(unittest.TestCase):
@@ -136,6 +132,9 @@ class ModelTestCase(RediscoTestCase):
     def test_multiple_managers_exist(self):
         self.assertIsInstance(Person.objects, managers.Manager)
         self.assertIsInstance(Person.all_objects, managers.Manager)
+
+    def test_history_manager(self):
+        self.assertIsNone(Person.all_objects.get_by_id(1))
 
     def test_manager_create(self):
         person = Person.objects.create(first_name="Granny", last_name="Goose")

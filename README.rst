@@ -166,6 +166,31 @@ back scene.
 ``key`` will be used as the main key in the redis Hash (and sub objects)
 instead of the class name.
 
+
+
+Custom Managers
+---------------
+
+Managers are attached to Model attributes by looking for a ``__attr_name__``
+class attribute. If not present, then it defaults to the lowercase attribute
+name in the Model.
+
+::
+    class User(models.Model):
+        firstname = models.Attribute()
+        lastname = models.Attribute()
+        active = models.BooleanField(default=True)        
+
+        class History(models.managers.Manager):
+            pass
+
+        class ObjectsManager(models.managers.Manager):
+            __attr_name__ = "objects"
+            def get_model_set(self):
+                return super(User.ObjectsManager, self).\
+                    get_model_set().filter(active=True)
+
+
 Saving and Validating
 ---------------------
 
