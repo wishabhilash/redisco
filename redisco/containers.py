@@ -65,9 +65,9 @@ class Container(object):
 
     @property
     def db(self):
-        if self.pipeline:
+        if self.pipeline is not None:
             return self.pipeline
-        if self._db:
+        if self._db is not None:
             return self._db
         if hasattr(self, 'db_cache') and self.db_cache:
             return self.db_cache
