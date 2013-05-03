@@ -120,7 +120,7 @@ class Set(Container):
         >>> s.add(["1", "2", "3"])
         3
         >>> s.srem(["1", "3"])
-        True
+        2 
         >>> s.clear()
 
         """
