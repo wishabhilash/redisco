@@ -352,10 +352,6 @@ class ModelSet(Set):
         :return: a SortedSet with the ids.
 
         """
-
-        import pdb
-        pdb.set_trace()
-
         k, v = self._zfilters[0].items()[0]
         try:
             att, op = k.split('__')
