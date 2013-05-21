@@ -950,7 +950,7 @@ class SortedSet(Container):
         >>> s.add('a', 10)
         1
         >>> s.zrem('a')
-        True
+        1
         >>> s.members
         []
         >>> s.clear()
@@ -1227,7 +1227,7 @@ class Hash(Container, collections.MutableMapping):
         >>> h.hset("bar", "value")
         1L
         >>> h.hdel("bar")
-        True
+        1
         >>> h.clear()
         """
         return self.db.hdel(self.key, *_parse_values(members))
