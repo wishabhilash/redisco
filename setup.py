@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 
-version = '0.2.1'
+version = '0.2.2'
 
 try:
     from setuptools import setup
