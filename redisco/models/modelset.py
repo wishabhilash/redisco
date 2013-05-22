@@ -381,7 +381,8 @@ class ModelSet(Set):
             members = zset.between(min, max, limit, offset)
 
         temp_set = Set(new_set_key_temp)
-        temp_set.add(*members)
+        if members:
+            temp_set.add(*members)
 
         s.intersection(new_set_key, temp_set)
         new_set = Set(new_set_key)
