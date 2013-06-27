@@ -363,6 +363,7 @@ class ModelSet(Set):
         limit, offset = self._get_limit_and_offset()
         new_set_key = "~%s.%s" % ("+".join([self.key, att, op]), id(self))
         new_set_key_temp = "#%s.%s" % ("+".join([self.key, att, op]), id(self))
+        members = []
         if isinstance(v, (tuple, list,)):
             min, max = v
             min = float(desc.typecast_for_storage(min))
@@ -375,12 +376,15 @@ class ModelSet(Set):
             members = zset.gt(v, limit, offset)
         elif op == 'gte':
             members = zset.ge(v, limit, offset)
+        elif op == 'le':
+            members = zset.le(v, limit, offset)
         elif op == 'lte':
             members = zset.le(v, limit, offset)
         elif op == 'in':
             members = zset.between(min, max, limit, offset)
 
         temp_set = Set(new_set_key_temp)
+        temp_set.set_expire()
         if members:
             temp_set.add(*members)
 
@@ -506,4 +510,3 @@ class ModelSet(Set):
         c._limit = self._limit
         c._offset = self._offset
         return c
-
