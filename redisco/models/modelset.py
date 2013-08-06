@@ -286,10 +286,9 @@ class ModelSet(Set):
         # For performance reasons, only one zfilter is allowed.
         if hasattr(self, '_cached_set'):
             return self._cached_set
+        s = Set(self.key)
         if self._zfilters:
-            self._cached_set = self._add_zfilters()
-            return self._cached_set
-        s = Set(self.key, db=self.db)
+            s = self._add_zfilters(s)
         if self._filters:
             s = self._add_set_filter(s)
         if self._exclusions:
@@ -346,7 +345,7 @@ class ModelSet(Set):
         new_set.set_expire()
         return new_set
 
-    def _add_zfilters(self):
+    def _add_zfilters(self, s):
         """
         This function is the internals of the zfilter function.
         It will create a SortedSet and will compare the scores to
@@ -355,7 +354,6 @@ class ModelSet(Set):
         :return: a SortedSet with the ids.
 
         """
-
         k, v = self._zfilters[0].items()[0]
         try:
             att, op = k.split('__')
@@ -365,6 +363,9 @@ class ModelSet(Set):
         desc = self.model_class._attributes[att]
         zset = SortedSet(index, db=self.db)
         limit, offset = self._get_limit_and_offset()
+        new_set_key = "~%s.%s" % ("+".join([self.key, att, op]), id(self))
+        new_set_key_temp = "#%s.%s" % ("+".join([self.key, att, op]), id(self))
+        members = []
         if isinstance(v, (tuple, list,)):
             min, max = v
             min = float(desc.typecast_for_storage(min))
@@ -372,15 +373,27 @@ class ModelSet(Set):
         else:
             v = float(desc.typecast_for_storage(v))
         if op == 'lt':
-            return zset.lt(v, limit, offset)
+            members = zset.lt(v, limit, offset)
         elif op == 'gt':
-            return zset.gt(v, limit, offset)
+            members = zset.gt(v, limit, offset)
         elif op == 'gte':
-            return zset.ge(v, limit, offset)
+            members = zset.ge(v, limit, offset)
+        elif op == 'le':
+            members = zset.le(v, limit, offset)
         elif op == 'lte':
-            return zset.le(v, limit, offset)
+            members = zset.le(v, limit, offset)
         elif op == 'in':
-            return zset.between(min, max, limit, offset)
+            members = zset.between(min, max, limit, offset)
+
+        temp_set = Set(new_set_key_temp)
+        if members:
+            temp_set.add(*members)
+        temp_set.set_expire()
+
+        s.intersection(new_set_key, temp_set)
+        new_set = Set(new_set_key)
+        new_set.set_expire()
+        return new_set
 
     def _order(self, skey):
         """
@@ -499,4 +512,3 @@ class ModelSet(Set):
         c._limit = self._limit
         c._offset = self._offset
         return c
-
