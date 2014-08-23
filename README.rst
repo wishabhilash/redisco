@@ -78,7 +78,7 @@ Model Attributes
 
 Attribute
     Stores unicode strings. If used for large bodies of text,
-    turn indexing of this field off by setting indexed=True.
+    turn indexing of this field off by setting indexed=False.
 
 IntegerField
     Stores an int. Ints are stringified using unicode() before saving to
