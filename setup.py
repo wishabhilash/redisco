@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 
-version = '0.2.4'
+version = '0.2.5'
 
 try:
     from setuptools import setup
@@ -18,6 +18,9 @@ setup(name='redisco',
       download_url='',
       long_description=read('README.rst'),
       install_requires=read('requirements.txt').splitlines(),
+      extras_require = {
+          'redislite':  ["redislite"]
+      },
       author='Tim Medina',
       author_email='iamteem@gmail.com',
       maintainer='Sebastien Requiem',
