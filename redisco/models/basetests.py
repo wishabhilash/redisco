@@ -10,7 +10,7 @@ from redisco.models.base import Mutex
 from dateutil.tz import tzlocal
 
 class Person(models.Model):
-    first_name = models.CharField()
+    first_name = models.CharField(required=True)
     last_name = models.CharField()
 
     def full_name(self):
@@ -54,6 +54,15 @@ class ModelTestCase(RediscoTestCase):
 
         jejomar = Person.objects.get_by_id('2')
         self.assertEqual(None, jejomar.last_name)
+
+    def test_save_succeed(self):
+        person = Person(first_name="Granny")
+        self.assertTrue(person.save())
+
+    def test_save_fail(self):
+        person = Person(last_name="Goose")
+        self.assertFalse(person.save())
+        self.assertEqual([('first_name', 'required')], person.errors)
 
     def test_unicode(self):
         p = Person(first_name=u"Niña", last_name="Jose")
