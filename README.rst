@@ -359,6 +359,20 @@ That client object will be used instead of the default.
     >>> Set('someset', r)
 
 
+Unit tests
+----------
+
+Redisco uses nose for testing. 
+
+Install nosetests:
+
+$ pip install nose
+
+And test:
+
+$ nosetests
+
+
 Credits
 -------
 
