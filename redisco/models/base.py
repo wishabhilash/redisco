@@ -3,11 +3,11 @@ from datetime import datetime, date
 from dateutil.tz import tzutc
 import redisco
 from redisco.containers import Set, List, SortedSet, NonPersistentList
-from attributes import *
-from key import Key
-from managers import ManagerDescriptor, Manager
-from exceptions import FieldValidationError, MissingID, BadKeyError, WatchError
-from attributes import Counter
+from .attributes import *
+from .key import Key
+from .managers import ManagerDescriptor, Manager
+from .exceptions import FieldValidationError, MissingID, BadKeyError, WatchError
+from .attributes import Counter
 
 __all__ = ['Model', 'from_key']
 
@@ -252,7 +252,7 @@ class Model(object):
         for field in self.fields:
             try:
                 field.validate(self)
-            except FieldValidationError, e:
+            except FieldValidationError as e:
                 self._errors.extend(e.errors)
         self.validate()
         return not bool(self._errors)
@@ -733,7 +733,9 @@ def from_key(key):
     try:
         _, id = key.split(':', 2)
         id = int(id)
-    except ValueError, TypeError:
+    except ValueError:
+        raise BadKeyError
+    except TypeError:
         raise BadKeyError
     return model.objects.get_by_id(id)
 
