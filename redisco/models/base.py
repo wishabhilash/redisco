@@ -226,7 +226,8 @@ class Model(object):
 
     def is_valid(self):
         """
-        Returns True if all the fields are valid.
+        Returns True if all the fields are valid, otherwise
+        errors are in the 'errors' attribute
 
         It first validates the fields (required, unique, etc.)
         and then calls the validate method.
@@ -242,6 +243,8 @@ class Model(object):
         >>> f = Foo()
         >>> f.bar = "Invalid"
         >>> f.save()
+        False
+        >>> f.errors
         ['bar', 'Invalid value']
 
         .. WARNING::
@@ -273,6 +276,8 @@ class Model(object):
         ...
         >>> f = Foo(name="Invalid")
         >>> f.save()
+        False
+        >>> f.errors
         [('name', 'cannot be Invalid')]
 
         """
