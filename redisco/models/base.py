@@ -768,6 +768,8 @@ class Mutex(object):
                     continue
 
     def lock_has_expired(self, lock):
+        if lock is None:
+            lock = 0.
         return float(lock) < time.time()
 
     def unlock(self):
