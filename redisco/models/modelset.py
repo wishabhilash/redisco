@@ -1,11 +1,11 @@
 """
 Handles the queries.
 """
-from attributes import IntegerField, DateTimeField
+from .attributes import IntegerField, DateTimeField
 import redisco
 from redisco.containers import SortedSet, Set, List, NonPersistentList
-from exceptions import AttributeNotIndexed
-from attributes import ZINDEXABLE
+from .exceptions import AttributeNotIndexed
+from .attributes import ZINDEXABLE
 
 # Model Set
 class ModelSet(Set):

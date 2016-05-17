@@ -8,7 +8,7 @@ from datetime import datetime, date
 from dateutil.tz import tzutc, tzlocal
 from calendar import timegm
 from redisco.containers import List
-from exceptions import FieldValidationError, MissingID
+from .exceptions import FieldValidationError, MissingID
 
 __all__ = ['Attribute', 'CharField', 'ListField', 'DateTimeField',
         'DateField', 'ReferenceField', 'Collection', 'IntegerField',
@@ -194,7 +194,9 @@ class DateTimeField(Attribute):
             dt = datetime.fromtimestamp(float(value), tzutc())
             # And gently override (ie: not convert) to the TZ to UTC
             return dt
-        except TypeError, ValueError:
+        except TypeError:
+            return None
+        except ValueError:
             return None
 
     def typecast_for_storage(self, value):
@@ -228,7 +230,9 @@ class DateField(Attribute):
             dt = date.fromtimestamp(float(value))
             # And assign (ie: not convert) the UTC TimeZone
             return dt
-        except TypeError, ValueError:
+        except TypeError:
+            return None
+        except ValueError:
             return None
 
     def typecast_for_storage(self, value):

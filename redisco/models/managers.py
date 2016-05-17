@@ -1,4 +1,4 @@
-from modelset import ModelSet
+from .modelset import ModelSet
 
 ############
 # Managers #
