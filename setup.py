@@ -28,7 +28,7 @@ setup(name='redisco',
       keywords=['Redis', 'model', 'container'],
       license='MIT',
       packages=['redisco', 'redisco.models'],
-      test_suite='tests.all_tests',
+      test_suite='nose.collector',
       classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
