@@ -11,8 +11,9 @@ from redisco.containers import List
 from .exceptions import FieldValidationError, MissingID
 
 __all__ = ['Attribute', 'CharField', 'ListField', 'DateTimeField',
-        'DateField', 'ReferenceField', 'Collection', 'IntegerField',
-        'FloatField', 'BooleanField', 'Counter', 'ZINDEXABLE']
+        'DateField', 'TimeDeltaField', 'ReferenceField', 'Collection',
+        'IntegerField', 'FloatField', 'BooleanField', 'Counter',
+        'ZINDEXABLE']
 
 
 class Attribute(object):
@@ -263,9 +264,11 @@ class TimeDeltaField(Attribute):
             # We load as if it is UTC time
             if value is None:
                 value = 0.
-            td = timedelta(seconds=value)
+            td = timedelta(seconds=float(value))
             return td
-        except TypeError, ValueError:
+        except TypeError:
+            return None
+        except ValueError:
             return None
 
     def typecast_for_storage(self, value):
@@ -274,10 +277,10 @@ class TimeDeltaField(Attribute):
                     (self.name, type(value)))
         if value is None:
             return None
-        return "%d" % value.totalseconds()
+        return "%d" % value.total_seconds()
 
     def value_type(self):
-        return date
+        return timedelta
 
     def acceptable_types(self):
         return self.value_type()
