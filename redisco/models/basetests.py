@@ -627,11 +627,11 @@ class Student(models.Model):
     average = models.FloatField(required=True)
 
 class FloatFieldTestCase(RediscoTestCase):
-    def test_CharField(self):
+    def test_FloatField(self):
         s = Student(name="Richard Cypher", average=86.4)
         self.assertEqual(86.4, s.average)
 
-    def test_saved_CharField(self):
+    def test_saved_FloatField(self):
         s = Student.objects.create(name="Richard Cypher",
                       average=3.14159)
         assert s
@@ -652,7 +652,7 @@ class FloatFieldTestCase(RediscoTestCase):
 
 
 class Task(models.Model):
-    name = models.CharField()
+    name = models.CharField(default="Unknown")
     done = models.BooleanField()
 
 class BooleanFieldTestCase(RediscoTestCase):
@@ -667,11 +667,19 @@ class BooleanFieldTestCase(RediscoTestCase):
 
         t = Task.objects.all()[0]
         self.assertFalse(t.done)
+        self.assertEqual(t.name, "Cook dinner")
         t.done = True
         assert t.save()
 
         t = Task.objects.all()[0]
         self.assertTrue(t.done)
+
+        t_default = Task(done=False)
+        assert t_default.save()
+
+        t_default = Task.objects.get_by_id(t_default.id)
+        self.assertTrue(t_default.name == "Unknown")
+
 
     def test_indexing(self):
         assert Task.objects.create(name="Study Lua", done=False)
