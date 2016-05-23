@@ -259,6 +259,15 @@ class TimeDeltaField(Attribute):
     def __init__(self, **kwargs):
         super(TimeDeltaField, self).__init__(**kwargs)
 
+    if hasattr(timedelta, "totals_seconds"):
+        def _total_seconds(self, td):
+            return td.total_seconds
+    else:
+        def _total_seconds(self, td):
+            return (td.microseconds + 0.0 + \
+                (td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6
+
+
     def typecast_for_read(self, value):
         try:
             # We load as if it is UTC time
@@ -277,7 +286,8 @@ class TimeDeltaField(Attribute):
                     (self.name, type(value)))
         if value is None:
             return None
-        return "%d" % value.total_seconds()
+
+        return "%d" % self._total_seconds(value)
 
     def value_type(self):
         return timedelta
