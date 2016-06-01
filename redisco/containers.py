@@ -831,7 +831,7 @@ class SortedSet(Container):
         Returns the maximum score in the SortedSet.
         """
         try:
-            self.zscore(self.__getitem__(-1))
+            return self.zscore(self.__getitem__(-1))
         except IndexError:
             return None
 
