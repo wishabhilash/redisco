@@ -156,11 +156,11 @@ class ModelTestCase(RediscoTestCase):
         self.assertEqual('Goose', p1.last_name)
 
     def test_multiple_managers_exist(self):
-        self.assertIsInstance(Person.objects, managers.Manager)
-        self.assertIsInstance(Person.all_objects, managers.Manager)
+        self.assertTrue(isinstance(Person.objects, managers.Manager))
+        self.assertTrue(isinstance(Person.all_objects, managers.Manager))
 
     def test_history_manager(self):
-        self.assertIsNone(Person.all_objects.get_by_id(1))
+        self.assertEqual(Person.all_objects.get_by_id(1), None)
 
     def test_manager_create(self):
         person = Person.objects.create(first_name="Granny", last_name="Goose")
