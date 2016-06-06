@@ -10,3 +10,4 @@ dump.rdb
 /.pyflymakercc
 /.emacs.desktop
 /redisco/.ropeproject/config.py
+.ropeproject
