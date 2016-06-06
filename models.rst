@@ -63,6 +63,9 @@ DateTimeField
 DateField
     Can store a Date object. Saved in Redis as a float.
 
+TimeDeltaField
+    Can store a TimeDelta object. Saved in Redis as a float.
+
 FloatField
     Can store floats.
 

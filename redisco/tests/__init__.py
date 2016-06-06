@@ -4,8 +4,8 @@ from redisco.containerstests import (SetTestCase, ListTestCase, TypedListTestCas
         SortedSetTestCase, HashTestCase)
 from redisco.models.basetests import (ModelTestCase, DateFieldTestCase, FloatFieldTestCase,
         BooleanFieldTestCase, ListFieldTestCase, ReferenceFieldTestCase,
-        DateTimeFieldTestCase, CounterFieldTestCase, CharFieldTestCase,
-        MutexTestCase,)
+        TimeDeltaFieldTestCase, DateTimeFieldTestCase, CounterFieldTestCase,
+        CharFieldTestCase, MutexTestCase)
 
 import redisco
 REDIS_DB = int(os.environ.get('REDIS_DB', 15)) # WARNING TESTS FLUSHDB!!!
@@ -27,6 +27,7 @@ def all_tests():
     suite.addTest(unittest.makeSuite(ListFieldTestCase))
     suite.addTest(unittest.makeSuite(ReferenceFieldTestCase))
     suite.addTest(unittest.makeSuite(DateTimeFieldTestCase))
+    suite.addTest(unittest.makeSuite(TimeDeltaFieldTestCase))
     suite.addTest(unittest.makeSuite(CounterFieldTestCase))
     suite.addTest(unittest.makeSuite(MutexTestCase))
     suite.addTest(unittest.makeSuite(HashTestCase))
