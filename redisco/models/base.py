@@ -157,11 +157,21 @@ def _initialize_key(model_class, name):
     model_class._key = Key(model_class._meta['key'] or name)
 
 
-def _initialize_manager(model_class):
+def _initialize_manager(model_class, name, bases, attrs):
     """
-    Initializes the objects manager attribute of the model.
+    Initializes the manager attributes of the model.
+    Defaults to an instance of `Manager' attached to `objects'.
+
+    A manager name is created using the `__attr_name__' class
+    attribute, or the class name in case the attribute is missing.
     """
+
     model_class.objects = ManagerDescriptor(Manager(model_class))
+    for key, val in attrs.iteritems():
+        if isinstance(val, type) and issubclass(val, Manager):
+            attr_name = getattr(val, "__attr_name__", key.lower())
+            descriptor = ManagerDescriptor(val(model_class))
+            setattr(model_class, attr_name, descriptor)
 
 
 class ModelOptions(object):
@@ -209,7 +219,7 @@ class ModelBase(type):
         _initialize_lists(cls, name, bases, attrs)
         _initialize_indices(cls, name, bases, attrs)
         _initialize_key(cls, name)
-        _initialize_manager(cls)
+        _initialize_manager(cls, name, bases, attrs)
         # if targeted by a reference field using a string,
         # override for next try
         for target, model_class, att in _deferred_refs:

@@ -6,18 +6,27 @@ import redisco
 import unittest
 from datetime import date
 from redisco import models
+from redisco.models import managers
 from redisco.models.base import Mutex
 from dateutil.tz import tzlocal
+
 
 class Person(models.Model):
     first_name = models.CharField(required=True)
     last_name = models.CharField()
+    active = models.BooleanField(default=False)        
 
     def full_name(self):
         return "%s %s" % (self.first_name, self.last_name,)
 
     class Meta:
         indices = ['full_name']
+
+    class HistoryManager(managers.Manager):
+        __attr_name__ = "all_objects"
+        def get_model_set(self):
+            return super(Person.HistoryManager, self).\
+                get_model_set().filter(active=True)
 
 
 class RediscoTestCase(unittest.TestCase):
@@ -77,11 +86,11 @@ class ModelTestCase(RediscoTestCase):
 
     def test_repr(self):
         person1 = Person(first_name="Granny", last_name="Goose")
-        self.assertEqual("<Person {'first_name': 'Granny', 'last_name': 'Goose'}>",
+        self.assertEqual("<Person {'active': False, 'first_name': 'Granny', 'last_name': 'Goose'}>",
                 repr(person1))
 
         self.assert_(person1.save())
-        self.assertEqual("<Person:1 {'first_name': 'Granny', 'last_name': 'Goose', 'id': '1'}>",
+        self.assertEqual("<Person:1 {'active': False, 'first_name': 'Granny', 'last_name': 'Goose', 'id': '1'}>",
                 repr(person1))
 
     def test_update(self):
@@ -145,6 +154,13 @@ class ModelTestCase(RediscoTestCase):
 
         self.assertEqual('Granny', p1.first_name)
         self.assertEqual('Goose', p1.last_name)
+
+    def test_multiple_managers_exist(self):
+        self.assertTrue(isinstance(Person.objects, managers.Manager))
+        self.assertTrue(isinstance(Person.all_objects, managers.Manager))
+
+    def test_history_manager(self):
+        self.assertEqual(Person.all_objects.get_by_id(1), None)
 
     def test_manager_create(self):
         person = Person.objects.create(first_name="Granny", last_name="Goose")
