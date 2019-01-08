@@ -31,7 +31,7 @@ class ModelSet(Set):
         Will look in _set to get the id and simply return the instance of the model.
         """
         if isinstance(index, slice):
-            return map(lambda id: self._get_item_with_id(id), self._set[index])
+            return [self._get_item_with_id(id) for id in self._set[index]]
         else:
             id = self._set[index]
             if id:
@@ -44,7 +44,7 @@ class ModelSet(Set):
             m = self._set[:30]
         else:
             m = self._set
-        s = map(lambda id: self._get_item_with_id(id), m)
+        s = [self._get_item_with_id(id) for id in m]
         return "%s" % s
 
     def __iter__(self):
@@ -257,7 +257,7 @@ class ModelSet(Set):
         [...]
         """
         opts = {}
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             if k in self.model_class._indices:
                 opts[k] = v
         o = self.filter(**opts).first()
@@ -308,7 +308,7 @@ class ModelSet(Set):
         :return: the new Set
         """
         indices = []
-        for k, v in self._filters.iteritems():
+        for k, v in self._filters.items():
             index = self._build_key_from_filter_item(k, v)
             if k not in self.model_class._indices:
                 raise AttributeNotIndexed(
@@ -332,7 +332,7 @@ class ModelSet(Set):
         :return: the new Set
         """
         indices = []
-        for k, v in self._exclusions.iteritems():
+        for k, v in self._exclusions.items():
             index = self._build_key_from_filter_item(k, v)
             if k not in self.model_class._indices:
                 raise AttributeNotIndexed(
@@ -354,7 +354,7 @@ class ModelSet(Set):
         :return: a SortedSet with the ids.
 
         """
-        k, v = self._zfilters[0].items()[0]
+        k, v = list(self._zfilters[0].items())[0]
         try:
             att, op = k.split('__')
         except ValueError:
@@ -366,7 +366,7 @@ class ModelSet(Set):
         new_set_key = "~%s.%s" % ("+".join([self.key, att, op]), id(self))
         new_set_key_temp = "#%s.%s" % ("+".join([self.key, att, op]), id(self))
         members = []
-        if isinstance(v, (tuple, list,)):
+        if isinstance(v, (tuple, list)):
             min, max = v
             min = float(desc.typecast_for_storage(min))
             max = float(desc.typecast_for_storage(max))

@@ -1,9 +1,9 @@
 try:
-    unicode
+    str
 except NameError:
     # Python 3
-    basestring = unicode = str
+    str = str = str
 
-class Key(unicode):
+class Key(str):
     def __getitem__(self, key):
-        return Key(u"%s:%s" % (self, key))
+        return Key("%s:%s" % (self, key))

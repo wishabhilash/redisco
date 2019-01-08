@@ -11,3 +11,7 @@ dump.rdb
 /.emacs.desktop
 /redisco/.ropeproject/config.py
 .ropeproject
+.venv
+.vscode
+Vagrantfile
+.vagrant
